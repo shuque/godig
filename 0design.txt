@@ -1,0 +1,47 @@
+Parallelism design.
+
+var numParallel = 20
+var tokens = make(chan struct{}, numParallel)
+var results = make(chan *ResponseInfo)
+
+var wg sync.WaitGroup
+
+
+go func() {
+    for query := loopOverFile(BatchFile) {
+        wg.Add(1)
+	tokens <- struct{}{}                     // acquire token
+        go func(query string) {
+            defer wg.Done()
+	    results <- runQuery(query)
+            <- tokens                            // release token
+        }(query)
+    }
+    wg.Wait()
+    close(results)
+}()
+
+
+for r := range(results) {
+    printResponse(r)
+}
+
+#############
+
+fun runQuery() {
+    responses := make(chan *ResponseInfo)
+
+    for _, server := range serverList {
+    	r := &ResponseInfo()
+	go sendDNSquery(server, responses)
+    }
+    for i := 0; i < len(serverList); i++ {
+    	r1 = <-responses
+	if responseOK(r1) {
+	   break
+	}
+    }
+    return r1
+}
+
+
