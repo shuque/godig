@@ -6,6 +6,7 @@ import (
 	"github.com/miekg/dns"
 	"log"
 	"os"
+	"net"
 	"path"
 	"strings"
 	"sync"
@@ -118,15 +119,13 @@ func doQuery(qname, qtype, qclass string, use_tcp bool) (response *dns.Msg, rtt 
 		response, rtt, err = sendRequest(m, false, timeout)
 		if err == nil {
 			break
-		} else {
-			// is there a better way to check for timeout error?
-			if !strings.Contains(err.Error(), "i/o timeout") {
-				break
-			}
-			retries--
-			if retries > 0 {
-				timeout = timeout * 2
-			}
+		}
+		if nerr, ok := err.(net.Error); ok && !nerr.Timeout() {
+                        break
+		}
+		retries--
+		if retries > 0 {
+			timeout = timeout * 2
 		}
 	}
 	return response, rtt, err
