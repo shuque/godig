@@ -121,7 +121,7 @@ func doQuery(qname, qtype, qclass string, use_tcp bool) (response *dns.Msg, rtt 
 			break
 		}
 		if nerr, ok := err.(net.Error); ok && !nerr.Timeout() {
-                        break
+			break
 		}
 		retries--
 		if retries > 0 {
@@ -186,7 +186,7 @@ func doit(qname, qtype, qclass string) {
 	tokens <- struct{}{} // Obtain token; blocks if channel is full.
 
 	response, rtt, err := doQuery(qname, qtype, qclass, Options.tcp)
-	if err == dns.ErrTruncated {
+	if response.MsgHdr.Truncated {
 		r.truncated = true
 		if !Options.ignore {
 			r.retried = true
