@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"github.com/miekg/dns"
 	"log"
-	"os"
 	"net"
+	"os"
 	"path"
 	"strings"
 	"sync"
@@ -183,18 +183,18 @@ func doit(qname, qtype, qclass string) {
 	r := new(ResponseInfo)
 	r.qname, r.qtype, r.qclass = qname, qtype, qclass
 
-	tokens <- struct{}{} // Obtain token; blocks if channel is full.
-
 	response, rtt, err := doQuery(qname, qtype, qclass, Options.tcp)
-	if response.MsgHdr.Truncated {
+
+	if err != nil {
+		if !strings.Contains(err.Error(), "i/o timeout") {
+			r.timeout = true
+		}
+	} else if response.MsgHdr.Truncated {
 		r.truncated = true
 		if !Options.ignore {
 			r.retried = true
 			response, rtt, err = doQuery(qname, qtype, qclass, true)
 		}
-	}
-	if err != nil && !strings.Contains(err.Error(), "i/o timeout") {
-		r.timeout = true
 	}
 
 	<-tokens // Release token.
@@ -258,16 +258,14 @@ func runBatchfile(batchfile string) {
 				continue
 			}
 			wg.Add(1)
-			go doit(qname, qtype, qclass)
+			tokens <- struct{}{}          // Obtain token; blocks if channel is full
+			go doit(qname, qtype, qclass) // releases token at the end
 		}
+		wg.Wait()
+		close(results)
 		if err := scanner.Err(); err != nil {
 			log.Fatal(err)
 		}
-	}()
-
-	go func() {
-		wg.Wait()
-		close(results)
 	}()
 
 	for r := range results {
@@ -321,6 +319,7 @@ func main() {
 		return
 	}
 
+	tokens <- struct{}{} // Obtain token, which is released by doit()
 	go doit(qname, qtype, qclass)
 	r := <-results
 	printResponse(r)
