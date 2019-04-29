@@ -22,6 +22,7 @@ var Progname string = path.Base(os.Args[0])
 var TimeoutInitial time.Duration = time.Second * 2
 var TimeoutTCP time.Duration = time.Second * 5
 var Retries int = 3
+var ExponentialBackoff = true
 var BufsizeDefault uint16 = 4096
 
 // Generic EDNS option
@@ -124,7 +125,7 @@ func doQuery(qname, qtype, qclass string, use_tcp bool) (response *dns.Msg, rtt 
 			break
 		}
 		retries--
-		if retries > 0 {
+		if retries > 0 && ExponentialBackoff {
 			timeout = timeout * 2
 		}
 	}
@@ -186,7 +187,7 @@ func doit(qname, qtype, qclass string) {
 	response, rtt, err := doQuery(qname, qtype, qclass, Options.tcp)
 
 	if err != nil {
-		if !strings.Contains(err.Error(), "i/o timeout") {
+		if nerr, ok := err.(net.Error); ok && nerr.Timeout() {
 			r.timeout = true
 		}
 	} else if response.MsgHdr.Truncated {
