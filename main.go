@@ -242,6 +242,8 @@ func runBatchfile(batchfile string) {
 
 	var qname, qtype, qclass string
 
+	t0 := time.Now()
+
 	go func() {
 		f, err := os.Open(batchfile)
 		if err != nil {
@@ -273,6 +275,10 @@ func runBatchfile(batchfile string) {
 		printResponse(r)
 		fmt.Println()
 	}
+
+	elapsed := time.Since(t0)
+	fmt.Printf(";; Elapsed time for batch: %s\n", elapsed)
+
 	return
 }
 
