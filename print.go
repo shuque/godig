@@ -169,6 +169,11 @@ func printResponse(r *ResponseInfo) {
 		}
 	}
 
-	fmt.Printf("\n;; ResponseTime: %.3fms\n", float64(r.rtt)/1000000.0)
+	// The size computation below may be different than the size of
+	// the actual response, which the go library doesn't retain. It
+	// is the size computed by re-packing the response message data
+	// structure.
+	fmt.Printf("\n;; time: %.3fms, server: %s:%d, size: %d bytes\n",
+		float64(r.rtt)/1000000.0, Options.server, Options.port, r.response.Len())
 	return
 }
