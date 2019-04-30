@@ -69,6 +69,7 @@ FORLOOP:
 			usage()
 		case arg == "-v":
 			fmt.Println("godig version " + Version)
+			fmt.Println("miekg/dns version " + dns.Version.String())
 			os.Exit(1)
 		case arg == "-x":
 			Options.reverseLookup = true
