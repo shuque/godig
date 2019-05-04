@@ -4,11 +4,12 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"fmt"
-	"github.com/miekg/dns"
 	"net"
 	"os"
 	"strconv"
 	"strings"
+
+	"github.com/miekg/dns"
 )
 
 //
@@ -28,8 +29,8 @@ func makeOptRR() *dns.OPT {
 		opt.SetDo()
 	}
 
-	if Options.edns_flags != 0 {
-		opt.Hdr.Ttl |= uint32(Options.edns_flags)
+	if Options.ednsFlags != 0 {
+		opt.Hdr.Ttl |= uint32(Options.ednsFlags)
 	}
 
 	if Options.nsid {
@@ -87,8 +88,8 @@ func makeOptRR() *dns.OPT {
 		opt.Option = append(opt.Option, e)
 	}
 
-	if Options.edns_opt != nil {
-		for _, o := range Options.edns_opt {
+	if Options.ednsOpt != nil {
+		for _, o := range Options.ednsOpt {
 			e := new(dns.EDNS0_LOCAL)
 			e.Code = o.code
 			h, err := hex.DecodeString(o.data)
@@ -101,6 +102,6 @@ func makeOptRR() *dns.OPT {
 		}
 	}
 
-	opt.SetVersion(Options.edns_version)
+	opt.SetVersion(Options.ednsVersion)
 	return opt
 }

@@ -40,7 +40,6 @@ Supported Options:
   +expire              Send and EDNS Expire option
   -yalg:name:key       Use TSIG with specified algorithm, name, and key
   +batch=filename      Run queries in specified batchfile, one per line
-  +parallel=N          Use N concurrent queries at a time in batchfile mode
-`)
+  +parallel=N          Use N concurrent queries at a time in batchfile mode`)
 	os.Exit(1)
 }

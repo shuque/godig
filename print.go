@@ -3,8 +3,9 @@ package main
 import (
 	"encoding/hex"
 	"fmt"
-	"github.com/miekg/dns"
 	"strconv"
+
+	"github.com/miekg/dns"
 )
 
 //
@@ -76,8 +77,8 @@ func printOptSection(m *dns.Msg, opt *dns.OPT) {
 	}
 	fmt.Printf("\n; EDNS: version %d; flags: %s; udp: %d; ercode=%d\n",
 		opt.Version(), flags, opt.UDPSize(), opt.ExtendedRcode())
-	rcode_hi_bits := (opt.Hdr.Ttl >> 24) & 0xff
-	if rcode_hi_bits != 0 {
+	rcodeHiBits := (opt.Hdr.Ttl >> 24) & 0xff
+	if rcodeHiBits != 0 {
 		m.MsgHdr.Rcode = opt.ExtendedRcode()
 	}
 
@@ -174,6 +175,7 @@ func printResponse(r *ResponseInfo) {
 	// is the size computed by re-packing the response message data
 	// structure.
 	fmt.Printf("\n;; time: %.3fms, server: %s:%d, size: %d bytes\n",
-		float64(r.rtt)/1000000.0, Options.server, Options.port, r.response.Len())
+		float64(r.rtt)/1000000.0, Options.server, Options.port,
+		r.response.Len())
 	return
 }

@@ -3,9 +3,10 @@ package main
 import (
 	"crypto/rand"
 	"fmt"
-	"github.com/miekg/dns"
 	"strconv"
 	"strings"
+
+	"github.com/miekg/dns"
 )
 
 //
@@ -62,7 +63,6 @@ func randomizeCase(qname string) (string, error) {
 func addressString(addr string, port int) string {
 	if strings.Index(addr, ":") == -1 {
 		return addr + ":" + strconv.Itoa(port)
-	} else {
-		return "[" + addr + "]" + ":" + strconv.Itoa(port)
 	}
+	return "[" + addr + "]" + ":" + strconv.Itoa(port)
 }

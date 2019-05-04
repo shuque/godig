@@ -3,7 +3,6 @@ package main
 import (
 	"bufio"
 	"fmt"
-	"github.com/miekg/dns"
 	"log"
 	"net"
 	"os"
@@ -11,21 +10,28 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/miekg/dns"
 )
 
-var Version string = "0.3"
+// Version string
+var Version = "0.3"
+
+// Progname - Program name
 var Progname string = path.Base(os.Args[0])
 
 //
 // Default parameters
 //
-var TimeoutInitial time.Duration = time.Second * 2
-var TimeoutTCP time.Duration = time.Second * 5
-var Retries int = 3
-var ExponentialBackoff = true
-var BufsizeDefault uint16 = 4096
+var (
+	TimeoutInitial     time.Duration = time.Second * 2
+	TimeoutTCP         time.Duration = time.Second * 5
+	Retries                          = 3
+	ExponentialBackoff               = true
+	BufsizeDefault     uint16        = 4096
+)
 
-// Generic EDNS option
+// EdnsoptStruct - Generic EDNS option
 type EdnsoptStruct struct {
 	code uint16
 	data string // hex-encoded data string
@@ -44,7 +50,7 @@ var tokens chan struct{}
 var results chan *ResponseInfo
 
 //
-// Response Information structure
+// ResponseInfo -
 //
 type ResponseInfo struct {
 	qname     string
@@ -59,7 +65,7 @@ type ResponseInfo struct {
 }
 
 //
-// makeMessage() - construct DNS message structure
+// makeMessage - construct DNS message structure
 //
 func makeMessage(qname, qtype, qclass string) *dns.Msg {
 
@@ -86,17 +92,17 @@ func makeMessage(qname, qtype, qclass string) *dns.Msg {
 	}
 
 	m.Question = make([]dns.Question, 1)
-	qtype_int, ok := dns.StringToType[strings.ToUpper(qtype)]
+	qtypeInt, ok := dns.StringToType[strings.ToUpper(qtype)]
 	if !ok {
 		fmt.Printf("%s: Unrecognized query type.\n", qtype)
 		usage()
 	}
-	qclass_int, ok := dns.StringToClass[strings.ToUpper(qclass)]
+	qclassInt, ok := dns.StringToClass[strings.ToUpper(qclass)]
 	if !ok {
 		fmt.Printf("%s: Unrecognized query class.\n", qclass)
 		usage()
 	}
-	m.Question[0] = dns.Question{qname, qtype_int, qclass_int}
+	m.Question[0] = dns.Question{Name: qname, Qtype: qtypeInt, Qclass: qclassInt}
 
 	return m
 }
@@ -104,14 +110,14 @@ func makeMessage(qname, qtype, qclass string) *dns.Msg {
 //
 // doQuery() - perform DNS query with timeouts and retries as needed
 //
-func doQuery(qname, qtype, qclass string, use_tcp bool) (response *dns.Msg, rtt time.Duration, err error) {
+func doQuery(qname, qtype, qclass string, useTCP bool) (response *dns.Msg, rtt time.Duration, err error) {
 
 	var retries = Options.retries
 	var timeout = Options.itimeout
 
 	m := makeMessage(qname, qtype, qclass)
 
-	if use_tcp {
+	if useTCP {
 		return sendRequest(m, true, Options.tcptimeout)
 	}
 
@@ -134,27 +140,27 @@ func doQuery(qname, qtype, qclass string, use_tcp bool) (response *dns.Msg, rtt 
 }
 
 //
-// sendRequest() - send a DNS query
+// sendRequest - send a DNS query
 //
-func sendRequest(m *dns.Msg, use_tcp bool, timeout time.Duration) (response *dns.Msg, rtt time.Duration, err error) {
+func sendRequest(m *dns.Msg, useTCP bool, timeout time.Duration) (response *dns.Msg, rtt time.Duration, err error) {
 
 	c := new(dns.Client)
 	c.Timeout = timeout
 
 	if Options.v6 {
-		if use_tcp {
+		if useTCP {
 			c.Net = "tcp6"
 		} else {
 			c.Net = "udp6"
 		}
 	} else if Options.v4 {
-		if use_tcp {
+		if useTCP {
 			c.Net = "tcp4"
 		} else {
 			c.Net = "udp4"
 		}
 	} else {
-		if use_tcp {
+		if useTCP {
 			c.Net = "tcp"
 		} else {
 			c.Net = "udp"

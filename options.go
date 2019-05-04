@@ -2,15 +2,16 @@ package main
 
 import (
 	"fmt"
-	"github.com/miekg/dns"
 	"os"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/miekg/dns"
 )
 
 //
-// Options
+// OptionsStruct -
 //
 type OptionsStruct struct {
 	port          int
@@ -24,9 +25,9 @@ type OptionsStruct struct {
 	cdflag        bool
 	norecurse     bool
 	edns          bool
-	edns_version  uint8
-	edns_flags    uint16
-	edns_opt      []*EdnsoptStruct
+	ednsVersion   uint8
+	ednsFlags     uint16
+	ednsOpt       []*EdnsoptStruct
 	dnssec        bool
 	bufsize       uint16
 	v4            bool
@@ -43,10 +44,13 @@ type OptionsStruct struct {
 	batchfile     string
 }
 
-var Options OptionsStruct = OptionsStruct{port: 53, tcp: false,
+//
+// Options -
+//
+var Options = OptionsStruct{port: 53, tcp: false,
 	itimeout: TimeoutInitial, tcptimeout: TimeoutTCP, retries: Retries,
 	adflag: false, cdflag: false, norecurse: false,
-	edns: false, edns_version: 0, dnssec: false}
+	edns: false, ednsVersion: 0, dnssec: false}
 
 //
 // parseArgs() - parse command line arguments and set options
@@ -56,7 +60,7 @@ func parseArgs(args []string) (qname, qtype, qclass string) {
 	var i int
 	var arg string
 	var err error
-	var no_qname = true
+	var noQname = true
 
 	qtype = "A"
 	qclass = "IN"
@@ -130,7 +134,7 @@ FORLOOP:
 				fmt.Printf("Invalid edns '%d': out of range\n", n)
 				usage()
 			}
-			Options.edns_version = uint8(n)
+			Options.ednsVersion = uint8(n)
 			Options.edns = true
 		case strings.HasPrefix(arg, "+ednsflags="):
 			n, err := strconv.Atoi(strings.TrimPrefix(arg, "+ednsflags="))
@@ -139,7 +143,7 @@ FORLOOP:
 				usage()
 			}
 			Options.edns = true
-			Options.edns_flags = uint16(n)
+			Options.ednsFlags = uint16(n)
 		case strings.HasPrefix(arg, "+ednsopt="):
 			s := strings.SplitN(strings.TrimPrefix(arg, "+ednsopt="), ":", 2)
 			n, err := strconv.Atoi(s[0])
@@ -153,7 +157,7 @@ FORLOOP:
 				o.data = s[1]
 			}
 			Options.edns = true
-			Options.edns_opt = append(Options.edns_opt, o)
+			Options.ednsOpt = append(Options.ednsOpt, o)
 		case strings.HasPrefix(arg, "+retry="):
 			n, err := strconv.Atoi(strings.TrimPrefix(arg, "+retry="))
 			if err != nil {
@@ -203,13 +207,13 @@ FORLOOP:
 			fmt.Printf("Invalid option: %s\n", arg)
 			usage()
 		default:
-			no_qname = false
+			noQname = false
 			break FORLOOP
 		}
 
 	}
 
-	if no_qname {
+	if noQname {
 		qname, qtype = ".", "NS"
 	} else {
 		switch len(args) - i {
